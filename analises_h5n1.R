@@ -593,3 +593,540 @@ ggsave(
 )
 
 #------------------------------------------------------------------------------#
+
+# Colunas dos swabs
+swabs <- c(
+  "Cerebral",
+  "Cerebelo",
+  "Ocular",
+  "Nasal",
+  "Oral",
+  "Traqueal",
+  "Pulmonar",
+  "Brônquios",
+  "Glândula Mamária",
+  "Genital",
+  "Anal",
+  "Intestino Delgado",
+  "Intestino Grosso",
+  "Fezes",
+  "Edema",
+  "Ferida"
+)
+
+# Swabs coletados (1 e 2)
+total_swabs <- dados_flu %>%
+  select(all_of(swabs)) %>%
+  pivot_longer(
+    everything(),
+    names_to = "Região",
+    values_to = "Resultado"
+  ) %>%
+  filter(Resultado %in% c("1", "2")) %>%
+  count(Região, name = "Total")
+
+# Swabs Flu-A positivos
+fluA_swabs <- dados_flu %>%
+  filter(`PCR Flu (controle)` == "Positivo") %>%
+  select(all_of(swabs)) %>%
+  pivot_longer(
+    everything(),
+    names_to = "Região",
+    values_to = "Resultado"
+  ) %>%
+  filter(Resultado == "2") %>%
+  count(Região, name = "FluA")
+
+# Swabs H5 positivos
+h5_swabs <- dados_flu %>%
+  filter(`PCR H5` == "Positivo") %>%
+  select(all_of(swabs)) %>%
+  pivot_longer(
+    everything(),
+    names_to = "Região",
+    values_to = "Resultado"
+  ) %>%
+  filter(Resultado == "2") %>%
+  count(Região, name = "H5")
+
+# Totais para legenda
+n_total_swabs <- sum(total_swabs$Total)
+
+n_fluA_swabs <- fluA_swabs %>%
+  summarise(total = sum(FluA)) %>%
+  pull(total)
+
+n_h5_swabs <- h5_swabs %>%
+  summarise(total = sum(H5)) %>%
+  pull(total)
+
+# Juntar dados
+dados_plot <- total_swabs %>%
+  left_join(fluA_swabs, by = "Região") %>%
+  left_join(h5_swabs, by = "Região") %>%
+  mutate(
+    FluA = ifelse(is.na(FluA), 0, FluA),
+    H5 = ifelse(is.na(H5), 0, H5)
+  )
+
+# Ordem baseada no total coletado
+ordem_regioes <- dados_plot %>%
+  arrange(desc(Total)) %>%
+  pull(Região)
+
+# Converter para formato longo
+dados_plot <- dados_plot %>%
+  pivot_longer(
+    cols = c(Total, FluA, H5),
+    names_to = "Grupo",
+    values_to = "Contagem"
+  ) %>%
+  mutate(
+    Grupo = factor(
+      Grupo,
+      levels = c("Total", "FluA", "H5")
+    ),
+    Região = factor(
+      Região,
+      levels = ordem_regioes
+    )
+  )
+
+# Gráfico
+ggplot(
+  dados_plot,
+  aes(
+    x = Região,
+    y = Contagem,
+    fill = Grupo
+  )
+) +
+  geom_bar(
+    stat = "identity",
+    position = position_dodge(width = 0.85)
+  ) +
+  geom_text(
+    aes(label = Contagem),
+    position = position_dodge(width = 0.85),
+    vjust = -0.3,
+    size = 5
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Total" = "black",
+      "FluA" = "gray70",
+      "H5" = "red"
+    ),
+    labels = c(
+      paste0("Suabes coletados (n = ", n_total_swabs, ")"),
+      paste0("Flu-A (n = ", n_fluA_swabs, ")"),
+      paste0("H5 (n = ", n_h5_swabs, ")")
+    ),
+    breaks = c(
+      "Total",
+      "FluA",
+      "H5"
+    )
+  ) +
+  scale_y_continuous(
+    expand = expansion(mult = c(0, 0.10))
+  ) +
+  labs(
+    x = "Regiões coletadas",
+    y = "Número de amostras",
+    title = "Número de Suabes coletados e positivos para Influenza A e H5",
+    fill = NULL
+  ) +
+  theme_classic(base_size = 18) +
+  theme(
+    plot.title = element_text(
+      size = 20,
+      face = "bold",
+      hjust = 0.5
+    ),
+    axis.title = element_text(
+      size = 18,
+      face = "bold"
+    ),
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1,
+      size = 14
+    ),
+    axis.text.y = element_text(
+      size = 16
+    ),
+    legend.position = "top",
+    legend.title = element_blank(),
+    legend.text = element_text(
+      size = 16,
+      face = "bold"
+    )
+  )
+
+# Salvar figura
+ggsave(
+  "Swabs_H5.png",
+  width = 14,
+  height = 8,
+  dpi = 600
+)
+
+#------------------------------------------------------------------------------#
+
+dados_resumo <- dados_flu %>%
+  select(
+    `Data da coleta`,
+    Espécie,
+    Táxon,
+    `PCR Flu (controle)`,
+    `PCR H5`
+  ) %>%
+  filter(
+    !is.na(`Data da coleta`),
+    `Data da coleta` != "-"
+  ) %>%
+  mutate(
+    `Data da coleta` = as.Date(
+      as.numeric(`Data da coleta`),
+      origin = "1899-12-30"
+    )
+  )
+
+str(dados_resumo)
+
+#------------------------------------------------------------------------------#
+
+dados_plot <- dados_resumo %>%
+  filter(
+    `PCR Flu (controle)` == "Positivo"
+  ) %>%
+  mutate(
+    Resultado = case_when(
+      `PCR H5` == "Positivo" ~ "H5",
+      `PCR Flu (controle)` == "Positivo" ~ "Flu-A"
+    )
+  )
+
+#------------------------------------------------------------------------------#
+
+# Totais para a legenda
+n_fluA <- dados_resumo %>%
+  filter(`PCR Flu (controle)` == "Positivo") %>%
+  nrow()
+
+n_h5 <- dados_resumo %>%
+  filter(`PCR H5` == "Positivo") %>%
+  nrow()
+
+#------------------------------------------------------------------------------#
+
+# Totais para a legenda
+n_fluA <- dados_plot %>%
+  filter(Resultado == "Flu-A") %>%
+  nrow()
+
+n_h5 <- dados_plot %>%
+  filter(Resultado == "H5") %>%
+  nrow()
+
+# Agrupar por mês
+dados_plot_mes <- dados_plot %>%
+  mutate(
+    Mes = as.Date(format(`Data da coleta`, "%Y-%m-01"))
+  ) %>%
+  count(
+    Mes,
+    Espécie,
+    Resultado,
+    name = "Contagem"
+  )
+
+# Gráfico
+ggplot() +
+  
+  # Flu-A primeiro (fica atrás)
+  geom_point(
+    data = dados_plot_mes %>%
+      filter(Resultado == "Flu-A"),
+    aes(
+      x = Mes,
+      y = Espécie,
+      size = Contagem,
+      fill = Resultado
+    ),
+    shape = 21,
+    color = "black",
+    stroke = 1.5,
+    alpha = 0.9
+  ) +
+  
+  # H5 depois (fica na frente)
+  geom_point(
+    data = dados_plot_mes %>%
+      filter(Resultado == "H5"),
+    aes(
+      x = Mes,
+      y = Espécie,
+      size = Contagem,
+      fill = Resultado
+    ),
+    shape = 21,
+    color = "black",
+    stroke = 1.5,
+    alpha = 0.9
+  ) +
+  
+  # Cores das classes
+  scale_fill_manual(
+    values = c(
+      "Flu-A" = "gray60",
+      "H5" = "red"
+    ),
+    labels = c(
+      "Flu-A",
+      "H5"
+    ),
+    breaks = c(
+      "Flu-A",
+      "H5"
+    ),
+    name = NULL
+  ) +
+  
+  # Escala de tamanho dos pontos
+  scale_size_continuous(
+    name = "Número de positivos",
+    range = c(5, 15),
+    breaks = pretty(dados_plot_mes$Contagem),
+    guide = guide_legend(
+      title.position = "top",
+      title.hjust = 0.5,
+      ncol = 1
+    )
+  ) +
+  
+  scale_x_date(
+    date_breaks = "1 month",
+    date_labels = "%Y-%m"
+  ) +
+  
+  labs(
+    x = "Data da coleta",
+    y = "Espécie",
+    fill = NULL,
+    title = "Mamíferos marinhos positivos para Influenza A e H5"
+  ) +
+  
+  guides(
+    fill = guide_legend(
+      nrow = 1,
+      byrow = TRUE,
+      title = NULL,
+      order = 1,
+      override.aes = list(
+        size = 8,      # tamanho dos círculos da legenda
+        shape = 21,
+        color = "black",
+        stroke = 1.5
+      )
+    ),
+    size = guide_legend(
+      order = 2
+    )
+  ) +
+  
+  theme_classic(base_size = 18) +
+  theme(
+    plot.title = element_text(
+      size = 20,
+      face = "bold",
+      hjust = 0.5
+    ),
+    
+    axis.title = element_text(
+      size = 18,
+      face = "bold"
+    ),
+    
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1,
+      size = 12
+    ),
+    
+    axis.text.y = element_text(
+      face = "italic",
+      size = 14
+    ),
+    
+    legend.position = "right",
+    legend.box = "vertical",
+    legend.box.just = "center",
+    
+    legend.title = element_text(
+      size = 14,
+      face = "bold"
+    ),
+    
+    legend.text = element_text(
+      size = 13
+    )
+  )
+
+#------------------------------------------------------------------------------#
+
+# Salvar figura (opcional)
+ggsave(
+  "FluA_H5_timeline.png",
+  width = 14,
+  height = 8,
+  dpi = 600
+)
+
+#------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------#
+
+#------------------------------------------------------------------------------#
+# Dados agregados
+#------------------------------------------------------------------------------#
+
+dados_plot_mes <- dados_resumo %>%
+  mutate(
+    Resultado = case_when(
+      `PCR Flu (controle)` == "Positivo" & `PCR H5` == "Positivo" ~ "H5",
+      `PCR Flu (controle)` == "Positivo" ~ "Flu-A",
+      TRUE ~ "Negativo"
+    ),
+    Mes = as.Date(format(`Data da coleta`, "%Y-%m-01"))
+  ) %>%
+  count(Mes, Espécie, Resultado, name = "Contagem") %>%
+  mutate(
+    Resultado = factor(Resultado, levels = c("Negativo", "Flu-A", "H5"))
+  )
+
+#------------------------------------------------------------------------------#
+# Gráfico (UMA camada → ordem garantida)
+#------------------------------------------------------------------------------#
+
+ggplot() +
+  
+  # --------------------------#
+  # Negativos (fundo)
+  # --------------------------#
+  geom_point(
+    data = dados_plot_mes %>% filter(Resultado == "Negativo"),
+    aes(
+      x = Mes,
+      y = Espécie,
+      size = Contagem,
+      fill = Resultado
+    ),
+    shape = 21,
+    color = "black",
+    stroke = 1.4
+  ) +
+  
+  # --------------------------#
+  # Flu-A (meio)
+  # --------------------------#
+  geom_point(
+    data = dados_plot_mes %>% filter(Resultado == "Flu-A"),
+    aes(
+      x = Mes,
+      y = Espécie,
+      size = Contagem,
+      fill = Resultado
+    ),
+    shape = 21,
+    color = "black",
+    stroke = 1.4
+  ) +
+  
+  # --------------------------#
+  # H5 (topo)
+  # --------------------------#
+  geom_point(
+    data = dados_plot_mes %>% filter(Resultado == "H5"),
+    aes(
+      x = Mes,
+      y = Espécie,
+      size = Contagem,
+      fill = Resultado
+    ),
+    shape = 21,
+    color = "black",
+    stroke = 1.4
+  ) +
+  
+  # Cores fixas
+  scale_fill_manual(
+    values = c(
+      "Negativo" = "white",
+      "Flu-A" = "gray60",
+      "H5" = "red"
+    ),
+    name = NULL
+  ) +
+  
+  # Tamanho dos pontos
+  scale_size_continuous(
+    name = "Número de amostras",
+    range = c(4, 14)
+  ) +
+  
+  # Eixos
+  scale_x_date(
+    date_breaks = "1 month",
+    date_labels = "%Y-%m"
+  ) +
+  
+  labs(
+    x = "Data da coleta",
+    y = "Espécie"
+  ) +
+  
+  guides(
+    fill = guide_legend(
+      nrow = 1,
+      override.aes = list(
+        shape = 21,
+        color = "black",
+        size = 7,
+        stroke = 1.2
+      )
+    ),
+    
+    size = guide_legend(
+      order = 2
+    )
+  ) +
+  
+  theme_classic(base_size = 18) +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      hjust = 0.5
+    ),
+    axis.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_text(face = "italic"),
+    
+    # 🔥 LEGENDA FORA DO GRÁFICO, TOPO CENTRALIZADA
+    legend.position = "top",
+    legend.justification = "center",
+    legend.box = "horizontal",
+    
+    legend.title = element_blank()
+  )
+
+#------------------------------------------------------------------------------#
+
+# Salvar figura (opcional)
+ggsave(
+  "FluA_H5_timeline.png",
+  width = 14,
+  height = 8,
+  dpi = 600
+)
