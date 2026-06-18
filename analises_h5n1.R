@@ -32,6 +32,7 @@ str(dados_flu)
 #------------------------------------------------------------------------------#
 
 dados_flu$Táxon <- as.factor(dados_flu$Táxon)
+dados_flu$Geraci <- as.factor(dados_flu$Geraci)
 
 str(dados_flu)
 
@@ -116,9 +117,9 @@ ggplot(
   ) +
   scale_x_discrete(
     labels = c(
-      "Pinípede" = "Pinípedes",
-      "Cetáceo" = "Cetáceos",
-      "Sirênio" = "Sirênios"
+      "Pinípede" = "Pinnipeds",
+      "Cetáceo" = "Cetaceans",
+      "Sirênio" = "Sirenians"
     )
   ) +
   scale_fill_manual(
@@ -128,7 +129,7 @@ ggplot(
       "Positivo_H5" = "red"
     ),
     labels = c(
-      paste0("Amostrados (n = ", n_total, ")"),
+      paste0("Sampled (n = ", n_total, ")"),
       paste0("Flu-A (n = ", n_positivo_fluA, ")"),
       paste0("H5 (n = ", n_positivo_h5, ")")
     ),
@@ -142,9 +143,9 @@ ggplot(
     expand = expansion(mult = c(0, 0.10))
   ) +
   labs(
-    x = "Táxons",
-    y = "Número de indivíduos",
-    title = "Número de indivíduos positivos para Influenza A e com subtipo H5",
+    x = "Taxons",
+    y = "Number of individuals",
+    title = "Number of individuals positive for Influenza A and the H5 subtype",
     fill = NULL
   ) +
   theme_classic(base_size = 18) +
@@ -265,7 +266,7 @@ ggplot(
       "Positivo_H5" = "red"
     ),
     labels = c(
-      paste0("Amostrados (n = ", n_total, ")"),
+      paste0("Sampled (n = ", n_total, ")"),
       paste0("Flu-A (n = ", n_positivo_fluA, ")"),
       paste0("H5 (n = ", n_positivo_h5, ")")
     ),
@@ -279,9 +280,9 @@ ggplot(
     expand = expansion(mult = c(0, 0.10))
   ) +
   labs(
-    x = "Espécie",
-    y = "Número de indivíduos",
-    title = "Número de indivíduos por espécie positivos para Influenza A e subtipo H5",
+    x = "species",
+    y = "Number of individuals",
+    title = "Number of individuals per species positive for Influenza A and the H5 subtype",
     fill = NULL
   ) +
   theme_classic(base_size = 18) +
@@ -402,15 +403,15 @@ ggplot(
       "Positivo_H5" = "red"
     ),
     labels = c(
-      paste0("Amostrados (n = ", n_total, ")"),
+      paste0("Sampled (n = ", n_total, ")"),
       paste0("Flu-A (n = ", n_positivo_fluA, ")"),
       paste0("H5 (n = ", n_positivo_h5, ")")
     )
   ) +
   labs(
-    x = "Espécies",
-    y = "Número de indivíduos",
-    title = "Número de indivíduos por espécie de pinípedes positivos para Influenza A e com subtipo H5",
+    x = "Species",
+    y = "Number of individuals",
+    title = "Number of pinnipeds individuals per species positive for Influenza A and the H5 subtype",
     fill = NULL
   ) +
   scale_y_continuous(
@@ -539,7 +540,7 @@ ggplot(
       "Positivo_H5" = "red"
     ),
     labels = c(
-      paste0("Amostrados (n = ", n_total, ")"),
+      paste0("Sampled (n = ", n_total, ")"),
       paste0("Flu-A (n = ", n_positivo_fluA, ")"),
       paste0("H5 (n = ", n_positivo_h5, ")")
     ),
@@ -550,9 +551,9 @@ ggplot(
     )
   ) +
   labs(
-    x = "Espécies",
-    y = "Número de indivíduos",
-    title = "Número de indivíduos por espécie de cetáceos positivos para Influenza A e com subtipo H5",
+    x = "Species",
+    y = "Number of individuals",
+    title = "Number of cetacean individuals per species positive for Influenza A and the H5 subtype",
     fill = NULL
   ) +
   scale_y_continuous(
@@ -693,6 +694,7 @@ dados_plot <- dados_plot %>%
   )
 
 # Gráfico
+# Gráfico
 ggplot(
   dados_plot,
   aes(
@@ -711,6 +713,26 @@ ggplot(
     vjust = -0.3,
     size = 5
   ) +
+  scale_x_discrete(
+    labels = c(
+      "Cerebral" = "Cerebrum",
+      "Cerebelo" = "Cerebellum",
+      "Ocular" = "Ocular",
+      "Nasal" = "Nasal",
+      "Oral" = "Oral",
+      "Traqueal" = "Tracheal",
+      "Pulmonar" = "Lung",
+      "Brônquios" = "Bronchi",
+      "Glândula Mamária" = "Mammary gland",
+      "Genital" = "Genital",
+      "Anal" = "Anal",
+      "Intestino Delgado" = "Small intestine",
+      "Intestino Grosso" = "Large intestine",
+      "Fezes" = "Feces",
+      "Edema" = "Edema",
+      "Ferida" = "Wound"
+    )
+  ) +
   scale_fill_manual(
     values = c(
       "Total" = "black",
@@ -718,7 +740,7 @@ ggplot(
       "H5" = "red"
     ),
     labels = c(
-      paste0("Suabes coletados (n = ", n_total_swabs, ")"),
+      paste0("Collected swabs (n = ", n_total_swabs, ")"),
       paste0("Flu-A (n = ", n_fluA_swabs, ")"),
       paste0("H5 (n = ", n_h5_swabs, ")")
     ),
@@ -732,9 +754,9 @@ ggplot(
     expand = expansion(mult = c(0, 0.10))
   ) +
   labs(
-    x = "Regiões coletadas",
-    y = "Número de amostras",
-    title = "Número de Suabes coletados e positivos para Influenza A e H5",
+    x = "Sampled regions",
+    y = "Number of samples",
+    title = "Number of collected swabs and swabs positive for Influenza A and the H5 subtype",
     fill = NULL
   ) +
   theme_classic(base_size = 18) +
@@ -766,7 +788,7 @@ ggplot(
 
 # Salvar figura
 ggsave(
-  "Swabs_H5.png",
+  "Swabs_H5_English.png",
   width = 14,
   height = 8,
   dpi = 600
@@ -1072,7 +1094,7 @@ ggplot() +
   
   # Tamanho dos pontos
   scale_size_continuous(
-    name = "Número de amostras",
+    name = "Number of samples",
     range = c(4, 14)
   ) +
   
@@ -1083,8 +1105,8 @@ ggplot() +
   ) +
   
   labs(
-    x = "Data da coleta",
-    y = "Espécie"
+    x = "Sampling period",
+    y = "Species"
   ) +
   
   guides(
@@ -1130,3 +1152,155 @@ ggsave(
   height = 8,
   dpi = 600
 )
+
+#------------------------------------------------------------------------------#
+
+# Total de indivíduos amostrados
+n_total <- nrow(dados_flu)
+
+# Total de positivos Flu-A
+n_positivo_fluA <- dados_flu %>%
+  filter(`PCR Flu (controle)` == "Positivo") %>%
+  nrow()
+
+# Total de positivos H5
+n_positivo_h5 <- dados_flu %>%
+  filter(`PCR H5` == "Positivo") %>%
+  nrow()
+
+# Contagem total por categoria Geraci
+total_geraci <- dados_flu %>%
+  count(Geraci, name = "Total")
+
+# Contagem de positivos Flu-A por categoria Geraci
+positivo_fluA_geraci <- dados_flu %>%
+  filter(`PCR Flu (controle)` == "Positivo") %>%
+  count(Geraci, name = "Positivo_FluA")
+
+# Contagem de positivos H5 por categoria Geraci
+positivo_h5_geraci <- dados_flu %>%
+  filter(`PCR H5` == "Positivo") %>%
+  count(Geraci, name = "Positivo_H5")
+
+# Juntar contagens
+dados_plot_geraci <- total_geraci %>%
+  left_join(positivo_fluA_geraci, by = "Geraci") %>%
+  left_join(positivo_h5_geraci, by = "Geraci") %>%
+  mutate(
+    Positivo_FluA = ifelse(is.na(Positivo_FluA), 0, Positivo_FluA),
+    Positivo_H5 = ifelse(is.na(Positivo_H5), 0, Positivo_H5)
+  )
+
+# Ordenar categorias do maior para o menor,
+# mantendo "Sem" sempre na última posição
+ordem_geraci <- dados_plot_geraci %>%
+  arrange(desc(Total)) %>%
+  pull(Geraci) %>%
+  unique()
+
+ordem_geraci <- c(
+  ordem_geraci[ordem_geraci != "Sem"],
+  "Sem"
+)
+
+# Converter para formato longo
+dados_plot_geraci <- dados_plot_geraci %>%
+  pivot_longer(
+    cols = c(Total, Positivo_FluA, Positivo_H5),
+    names_to = "Grupo",
+    values_to = "Contagem"
+  ) %>%
+  mutate(
+    Grupo = factor(
+      Grupo,
+      levels = c("Total", "Positivo_FluA", "Positivo_H5")
+    ),
+    Geraci = factor(
+      Geraci,
+      levels = ordem_geraci
+    )
+  )
+
+# Gráfico
+ggplot(
+  dados_plot_geraci,
+  aes(
+    x = Geraci,
+    y = Contagem,
+    fill = Grupo
+  )
+) +
+  geom_bar(
+    stat = "identity",
+    position = position_dodge(width = 0.8)
+  ) +
+  geom_text(
+    aes(label = Contagem),
+    position = position_dodge(width = 0.8),
+    vjust = -0.3,
+    size = 6
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Total" = "black",
+      "Positivo_FluA" = "gray70",
+      "Positivo_H5" = "red"
+    ),
+    labels = c(
+      paste0("Sampled (n = ", n_total, ")"),
+      paste0("Flu-A (n = ", n_positivo_fluA, ")"),
+      paste0("H5 (n = ", n_positivo_h5, ")")
+    ),
+    breaks = c(
+      "Total",
+      "Positivo_FluA",
+      "Positivo_H5"
+    )
+  ) +
+  scale_y_continuous(
+    expand = expansion(mult = c(0, 0.10))
+  ) +
+  labs(
+    x = "Geraci Code",
+    y = "Number of individuals",
+    title = "Number of individuals positive for Influenza A and the H5 subtype by Geraci code",
+    fill = NULL
+  ) +
+  theme_classic(base_size = 18) +
+  theme(
+    plot.title = element_text(
+      size = 20,
+      face = "bold",
+      hjust = 0.5
+    ),
+    axis.title = element_text(
+      size = 18,
+      face = "bold"
+    ),
+    axis.text.x = element_text(
+      #angle = 45,
+      hjust = 1,
+      size = 16
+    ),
+    axis.text.y = element_text(
+      size = 16
+    ),
+    legend.position = "top",
+    legend.title = element_blank(),
+    legend.text = element_text(
+      size = 16,
+      face = "bold"
+    )
+  )
+
+#------------------------------------------------------------------------------#
+
+# Salvar figura (opcional)
+ggsave(
+  "FluA_H5_GERACI.png",
+  width = 14,
+  height = 8,
+  dpi = 600
+)
+
+#------------------------------------------------------------------------------#
