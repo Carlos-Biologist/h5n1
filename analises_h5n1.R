@@ -1304,3 +1304,156 @@ ggsave(
 )
 
 #------------------------------------------------------------------------------#
+
+# Unir RS_Sul e RS_Norte e remover registros com Estado = "-"
+dados_flu_estado <- dados_flu %>%
+  filter(
+    !is.na(Estado),
+    Estado != "",
+    Estado != "-"
+  ) %>%
+  mutate(
+    Estado = case_when(
+      Estado %in% c("RS_Sul", "RS_Norte") ~ "RS",
+      TRUE ~ Estado
+    )
+  )
+
+# Total de carcaças analisadas
+n_total <- nrow(dados_flu_estado)
+
+# Total de positivos Flu-A
+n_positivo_fluA <- dados_flu_estado %>%
+  filter(`PCR Flu (controle)` == "Positivo") %>%
+  nrow()
+
+# Total de positivos H5
+n_positivo_h5 <- dados_flu_estado %>%
+  filter(`PCR H5` == "Positivo") %>%
+  nrow()
+
+# Contagem total por estado
+total_estado <- dados_flu_estado %>%
+  count(Estado, name = "Total")
+
+# Contagem de positivos Flu-A por estado
+positivo_fluA_estado <- dados_flu_estado %>%
+  filter(`PCR Flu (controle)` == "Positivo") %>%
+  count(Estado, name = "Positivo_FluA")
+
+# Contagem de positivos H5 por estado
+positivo_h5_estado <- dados_flu_estado %>%
+  filter(`PCR H5` == "Positivo") %>%
+  count(Estado, name = "Positivo_H5")
+
+# Juntar contagens
+dados_plot_estado <- total_estado %>%
+  left_join(positivo_fluA_estado, by = "Estado") %>%
+  left_join(positivo_h5_estado, by = "Estado") %>%
+  mutate(
+    Positivo_FluA = ifelse(is.na(Positivo_FluA), 0, Positivo_FluA),
+    Positivo_H5 = ifelse(is.na(Positivo_H5), 0, Positivo_H5)
+  )
+
+# Ordem dos estados baseada no total
+ordem_estado <- dados_plot_estado %>%
+  arrange(desc(Total)) %>%
+  pull(Estado)
+
+# Converter para formato longo
+dados_plot_estado <- dados_plot_estado %>%
+  pivot_longer(
+    cols = c(Total, Positivo_FluA, Positivo_H5),
+    names_to = "Grupo",
+    values_to = "Contagem"
+  ) %>%
+  mutate(
+    Grupo = factor(
+      Grupo,
+      levels = c("Total", "Positivo_FluA", "Positivo_H5")
+    ),
+    Estado = factor(
+      Estado,
+      levels = ordem_estado
+    )
+  )
+
+# Gráfico
+ggplot(
+  dados_plot_estado,
+  aes(
+    x = Estado,
+    y = Contagem,
+    fill = Grupo
+  )
+) +
+  geom_bar(
+    stat = "identity",
+    position = position_dodge(width = 0.8)
+  ) +
+  geom_text(
+    aes(label = Contagem),
+    position = position_dodge(width = 0.8),
+    vjust = -0.3,
+    size = 6
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Total" = "black",
+      "Positivo_FluA" = "gray70",
+      "Positivo_H5" = "red"
+    ),
+    labels = c(
+      paste0("Sampled (n = ", n_total, ")"),
+      paste0("Flu-A (n = ", n_positivo_fluA, ")"),
+      paste0("H5 (n = ", n_positivo_h5, ")")
+    ),
+    breaks = c(
+      "Total",
+      "Positivo_FluA",
+      "Positivo_H5"
+    )
+  ) +
+  scale_y_continuous(
+    expand = expansion(mult = c(0, 0.10))
+  ) +
+  labs(
+    x = "State",
+    y = "Number of individuals",
+    title = "Number of individuals positive for Influenza A and the H5 subtype by state",
+    fill = NULL
+  ) +
+  theme_classic(base_size = 18) +
+  theme(
+    plot.title = element_text(
+      size = 20,
+      face = "bold",
+      hjust = 0.5
+    ),
+    axis.title = element_text(
+      size = 18,
+      face = "bold"
+    ),
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1,
+      size = 16
+    ),
+    axis.text.y = element_text(
+      size = 16
+    ),
+    legend.position = "top",
+    legend.title = element_blank(),
+    legend.text = element_text(
+      size = 16,
+      face = "bold"
+    )
+  )
+
+# Salvar figura
+ggsave(
+  "contagem_estado.png",
+  width = 14,
+  height = 8,
+  dpi = 600
+)
