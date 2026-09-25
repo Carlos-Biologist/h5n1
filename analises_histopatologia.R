@@ -433,24 +433,12 @@ contagem_cerebro
 
 # ---------------------------------------------------------------------------- #
 
-dados_cerebro <- dados_laudos_analise %>%
-  filter(Orgão == "Cérebro")
-
-contagem_cerebro_class <- dados_cerebro%>%
-  distinct(ID, `Orgão`) %>%     # valor repetido no mesmo ID conta uma vez
-  count(`Orgão`, name = "n_amostras")
-
-contagem_cerebro_class
-
-dados_cerebro %>%
-  count(Laudo_class, sort = TRUE)
-
-# ---------------------------------------------------------------------------- #
-
-frequencia_laudo_class <- dados_laudos_analise %>%
+frequencia_laudo_class_cerebro <- dados_laudos_analise %>%
   filter(Orgão == "Cérebro") %>%
   distinct(ID, Laudo_class) %>%
   count(Laudo_class, sort = TRUE)
+
+frequencia_laudo_class_cerebro
 
 # ---------------------------------------------------------------------------- #
 
